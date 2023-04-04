@@ -8,7 +8,7 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User, People
+from models import db, User, People, Planet, Vehicle, FavoritePeople, FavoritePlanets, FavoriteVehicles
 #from models import Person
 
 app = Flask(__name__)
@@ -109,6 +109,119 @@ def edit_user():
     db.session.commit()
   
     return jsonify(user.serialize()), 200
+
+
+
+@app.route('/add-favorite/people', methods=['POST'])
+def add_favorite_people():
+    body = request.get_json() 
+    user_id = body["user_id"]
+    people_id = body["people_id"]
+
+    character = People.query.get(people.id).first()
+    if not character:
+        raise APIException('Personaje no encontrado')
+
+    user = People.query.get(user.id).first()
+    if not user:
+        raise APIException('Usuarios no encontrado')
+       
+
+    fav_exist = FavoritePeople.query.filter_by(user_id=user.id, people_id = character.id,)
+
+    if fav_exist:
+        raise APIException('el Usuario ya lo tiene guardado en favorito ')
+
+
+    favorite_people = FavoritePeople(user_id.id, people_id=character.id)
+    db.session.add(favorite_people)   
+    db.session.commit() 
+
+
+    return jsonify(favorite_people.serialize()), 200
+
+@app.route('/add-favorite/planets', methods=['POST'])
+def add_favorite_planet():
+    body = request.get_json() 
+    user_id = body["user_id"]
+    planet_id = body["planet_id"]
+
+
+    planet = planet.query.get(planet.id).first()
+    if not character:
+        raise APIException('Planeta no encontrado') 
+
+
+
+    fav_exist = FavoritePlanets.query.filter_by(user_id=user.id, planet_id = planet.id,)
+
+    if fav_exist:
+        raise APIException('el Usuario ya lo tiene guardado en favorito ')
+
+
+    favorite_planets = FavoritePlanets(user_id.id, planet_id=planet.id)
+    db.session.add(favorite_planets)   
+    db.session.commit() 
+
+    return jsonify(favorite_planets.serialize()), 200
+
+
+@app.route('/add-favorite/vehicles', methods=['POST'])
+def add_favorite_vehicles():
+    body = request.get_json() 
+    user_id = body["user_id"]
+    vehicle_id = nody["vehicle_id"]
+
+    vehicles = Vehicles.query.get(vehicle_id).first()
+    if not vehicles:
+        raise APIException('vehicle no encontrado')
+
+
+    fav_exist = FavoriteVehicles.query.filter_by(user_id=user.id, vehicle_id = vehicles.id,) 
+    if fav_exist:
+        raise APIException('el Usuario ya lo tiene guardado en favorito ')
+
+    favorite_Vehicles = FavoriteVehicles(user_id.id, vehicle_id=vehicles.id)
+    db.session.add(favorite_vehicles)   
+    db.session.commit() 
+
+    return jsonify(favorite_vehicles.serialize()), 200
+
+
+@app.route('/favorites', methods=['POST'])
+def list_favorites():
+    body = request.get_json() 
+    user_id = body["user_id"]
+
+
+    user_favorites = FavoritePeople.query.filter.filter_by(user_id=user.id).all()
+    user_favorites_final = map((lambda item: item.serialize(), user_favorites)).all()
+
+    user_favorites_final = user_favorites + user_favorites_final
+
+    user_favorites_planets = FavoritePlanets.query.filter.filter_by(user_id=user.id).all()
+    user_favorites_final_planets = map((lambda item: item.serialize(), user_favorites_planets)).all()
+
+    user_favorites_final_planets = user_favorites_planets + user_favorites_final_planets
+
+    user_favorites_vehicles = FavoriteVehicle.query.filter.filter_by(user_id=user.id).all()
+    user_favorites_final_vehicles = map((lambda item: item.serialize(), user_favorites_vehicles)).all()
+
+    user_favorites_final_vehicles = user_favorites_vehicles + user_favorites_final_vehicles
+    
+
+
+    return jsonify (user_favorites_finals)
+
+
+    
+
+
+    
+
+
+    
+
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
