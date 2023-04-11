@@ -10,6 +10,8 @@ from utils import APIException, generate_sitemap
 from admin import setup_admin
 from models import db, User, People, Planet, Vehicle, FavoritePeople, FavoritePlanets, FavoriteVehicles, TokenBlockedList
 from flask_jwt_extended import create_access_token, get_jwt_identity, get_jwt, jwt_required,JWTManager 
+from flask import Flask
+from flask_bcrypt import Bcrypt
 
 
 #from models import Person
@@ -25,8 +27,10 @@ else:
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Setup the Flask-JWT-Extended extension
-app.config["JWT_SECRET_KEY"] = "super-secret"  # Change this!
+app.config["JWT_SECRET_KEY"] = os.getenv("FLASK_APP_KEY")  # Change this!
 jwt = JWTManager(app)
+
+bcrypt = Bcrypt(app)
 
 MIGRATE = Migrate(app, db)
 db.init_app(app)
@@ -68,8 +72,11 @@ def register_user():
     if "email" not in body:
         raise APIException("You need to specify the email", status_code=400)
 
+
+    password_encrypted = bcrypt.generate_password_hash(password, 10).decode("utf-8")
+
     #creada la clase User en la variable new_user
-    new_user = User(email=email, name=name, password=password, is_active=is_active)
+    new_user = User(email=email, name=name, password=password_encrypted, is_active=is_active)
 
     #comitear la sesión
     db.session.add(new_user) #agregamos el nuevo usuario a la base de datos
